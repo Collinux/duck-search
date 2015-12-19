@@ -43,9 +43,8 @@ def get_results(string):
         Dictionary with keys "" # TODO
 
     """
-    # string = string[string.index('<tbody>'):string.index('</tbody>')]
-    # print string
 
+    # Get table rows containing the results
     soup = BeautifulSoup.BeautifulSoup(string)
     rows = soup.findAll('tr')
     valid_rows = []
@@ -55,11 +54,11 @@ def get_results(string):
 
     # Break the table rows into chunks of three, separating each row info
     counter = 0
-    row_data = {}
+    row_data = {}  # Looping structure below adds keys "title", "description", and "link"
     row_mass = []
     for row in valid_rows:
         if counter == 0:
-            row_data['title'] = row[row.index('.')+1:]
+            row_data['title'] = row[row.index('.')+1:]  # Remove number from the title
             counter += 1
         elif counter == 1:
             row_data['description'] = row
