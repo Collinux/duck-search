@@ -1,35 +1,38 @@
 import curses
-import json
-import sys
 import urllib2
 import BeautifulSoup
 
 
-# sys.stdout.write("\x1b]2;{0}\x07".format('DuckDuckGo Search'))  # Change terminal title
-#
-# # Standard curses configuration
-# screen = curses.initscr()
-# curses.noecho()
-# curses.cbreak()
-# screen.keypad(1)
-#
-# height = 80
-# width = 80
-# begin_x = 1
-# begin_y = 1
-# window = curses.newwin(height, width, begin_y, begin_x)
-#
-#
-# def quit():
-#     curses.endwin()
-#
-#
-# screen.addstr("Pretty text\n", curses.COLOR_WHITE)
-#
-# input = screen.getch()
-# if input == 'q':
-#     quit()
+def start():
+    # Configure window and screen
+    screen = curses.initscr()
+    height, width = screen.getmaxyx()
+    begin_x = begin_y = 1
+    window = curses.newwin(height, width, begin_y, begin_x)
+    curses.noecho()
+    curses.cbreak()
+    screen.keypad(1)
 
+    # Load content
+    # todo: get input
+    search_for = build_url('python curses library')
+    page = get_page_html(search_for)
+    results = get_results(page)
+
+    if results is None:
+        print "Cannot connect to DuckDuckGo."
+        return
+    for row in results:
+        screen.addstr(row['title']+'\n', curses.COLOR_WHITE)
+
+    # Get keyboard input for commands/shortcuts
+    running = True
+    while running:
+        char = screen.getch()
+        if char == ord('q') or char == curses.KEY_CANCEL:
+            running = False
+        # todo: HJKL move commands
+    curses.endwin()
 
 
 def get_results(string):
@@ -55,7 +58,7 @@ def get_results(string):
     # Break the table rows into chunks of three, separating each row info
     counter = 0
     row_data = {}  # Looping structure below adds keys "title", "description", and "link"
-    row_mass = []
+    results = []
     for row in valid_rows:
         if counter == 0:
             row_data['title'] = row[row.index('.')+1:]  # Remove number from the title
@@ -65,12 +68,13 @@ def get_results(string):
             counter += 1
         elif counter == 2:
             row_data['link'] = row
-            row_mass.append(row_data)
+            results.append(row_data)
 
             # Reset all other vars
             counter = 0
             row_data = {}
-    print str(json.dumps(byteify(row_mass)))
+    results = byteify(results)
+    print results
 
 
 def byteify(input):
@@ -151,6 +155,4 @@ def build_url(args):
     return 'https://duckduckgo.com/lite/?q=' + args.replace(' ', '+')
 
 
-search_for = build_url('python curses library')
-page = get_page_html(search_for)
-results = get_results(page)  # todo: check for NONE object
+start()
