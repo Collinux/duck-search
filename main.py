@@ -44,17 +44,20 @@ def start():
 
 def row_formatting(row):
     """
+    Custom format for rows from the search result
 
     Args:
-        row:
+        row: String raw from html
 
     Returns:
+        String formatted for display
 
     """
     # todo: this could all probably be done in one step
     row = row.replace('<b>', '')
     row = row.replace('</b>', '')
     row = row.replace('\n', '')
+    row = row.replace('\xc2\xb7', '')  # todo: find others like this... there has to be a library somewhere
     row = row.strip()
     row = row.title()
     return row
@@ -173,28 +176,6 @@ def get_page_html(url):
     print "Error for url %, code %s" % (url, str(page_code))
     return None
 
-
-def get_inner_html(input):
-    """
-    Mimics javascript's innerHTML function.
-
-    If there are multiple links then return all values (comma separated)
-    Example: <A HREF="http://website.html" NAME="center">WEB</A> - with "WEB" being the value
-
-    Args:
-        input: String of all characters
-
-    Returns:
-        String of HTML value in-between '> <'.
-
-    """
-    output = []
-    for link in input.split('<A'):
-        if '>' in link and '<' in link:
-            link = link[link.index('>') + 1:link.rindex('<')]
-            if len(link) > 0:
-                output.append(link)
-    return output
 
 
 def build_url(args):
