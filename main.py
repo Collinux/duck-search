@@ -1,9 +1,12 @@
 import curses
 import urllib2
 import BeautifulSoup
-
+import logging as log
 
 def start():
+    # Setup debugging
+    log.basicConfig(filename='ducksearch.log', level=log.DEBUG)
+
     # Configure window and screen
     screen = curses.initscr()
     height, width = screen.getmaxyx()
@@ -22,8 +25,8 @@ def start():
     if results is None:
         print "Cannot connect to DuckDuckGo."
         return
-    for row in results:
-        screen.addstr(row['title']+'\n', curses.COLOR_WHITE)
+    #for row in results:
+        #screen.addstr(row['title']+'\n', curses.COLOR_WHITE)
 
     # Get keyboard input for commands/shortcuts
     running = True
@@ -33,6 +36,24 @@ def start():
             running = False
         # todo: HJKL move commands
     curses.endwin()
+
+
+def row_formatting(row):
+    """
+
+    Args:
+        row:
+
+    Returns:
+
+    """
+    # todo: this could all probably be done in one step
+    row = row.replace('<b>', '')
+    row = row.replace('</b>', '')
+    row = row.replace('\n', '')
+    row = row.strip()
+    row = row.title()
+    return row
 
 
 def get_results(string):
@@ -49,13 +70,41 @@ def get_results(string):
 
     # Get table rows containing the results
     soup = BeautifulSoup.BeautifulSoup(string)
-    rows = soup.findAll('tr')
+    table = soup.findAll('table')[2]
+
+    # counter = 0
+    # for t in table:
+    #     log.debug("---------------%s-----------" % str(counter))
+    #     log.debug(str(t))
+    #     counter += 1
+
+    rows = table.findAll('tr')
     valid_rows = []
     for row in rows:
-        if len(row.text) > 0 and 'Next Page' not in row.text and row.text != '&nbsp;&nbsp;' and row.text != '&nbsp;':
-            row = row.text.replace('&nbsp;', '')
-            row = row.text.replace('&quot;', '"')
+        if len(row) < 5:
+            continue
+        row = str(row)
+
+        # Go through inner html for all text
+        if 'result-link' in row:
+            # Title section
+            row = row[row.index('link">')+6: row.index('</a>')]
+            valid_rows.append(row_formatting(row))
+            #log.debug(row)
+        elif 'result-snippet' in row:
+            # Description section
+            row = row[row.index('snippet">')+9: row.rindex('</td>')]
+            valid_rows.append(row_formatting(row))
+            #log.debug(row)
+        elif 'link-text' in row:
+            # Link section
+            row = row[row.index('text">')+6: row.index('</span>')]
+            if 'http' not in row:
+                row = 'http://' + row
             valid_rows.append(row)
+            #log.debug(row)
+        else:
+            continue
 
     # Break the table rows into chunks of three, separating each row info
     counter = 0
@@ -63,7 +112,7 @@ def get_results(string):
     results = []
     for row in valid_rows:
         if counter == 0:
-            row_data['title'] = row[row.index('.')+1:]  # Remove number from the title
+            row_data['title'] = row
             counter += 1
         elif counter == 1:
             row_data['description'] = row
@@ -76,7 +125,8 @@ def get_results(string):
             counter = 0
             row_data = {}
     results = byteify(results)
-    print results
+    log.debug(str(results))
+    return results
 
 
 def byteify(input):
