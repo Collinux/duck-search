@@ -1,4 +1,5 @@
 import curses
+import json
 import sys
 import urllib2
 import BeautifulSoup
@@ -50,9 +51,7 @@ def get_results(string):
     valid_rows = []
     for row in rows:
         if len(row.text) > 0 and 'Next Page' not in row.text and row.text != '&nbsp;&nbsp;' and row.text != '&nbsp;':
-            row = row.text.replace('&nbsp;', '')
-            print row
-            valid_rows.append(row)
+            valid_rows.append(row.text.replace('&nbsp;', ''))
 
     # Break the table rows into chunks of three, separating each row info
     counter = 0
@@ -72,7 +71,7 @@ def get_results(string):
             # Reset all other vars
             counter = 0
             row_data = {}
-    print str(byteify(row_mass))
+    print str(json.dumps(byteify(row_mass)))
 
 
 def byteify(input):
