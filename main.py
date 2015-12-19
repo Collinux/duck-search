@@ -53,7 +53,9 @@ def get_results(string):
     valid_rows = []
     for row in rows:
         if len(row.text) > 0 and 'Next Page' not in row.text and row.text != '&nbsp;&nbsp;' and row.text != '&nbsp;':
-            valid_rows.append(row.text.replace('&nbsp;', ''))
+            row = row.text.replace('&nbsp;', '')
+            row = row.text.replace('&quot;', '"')
+            valid_rows.append(row)
 
     # Break the table rows into chunks of three, separating each row info
     counter = 0
