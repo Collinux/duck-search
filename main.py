@@ -22,12 +22,15 @@ def start():
     page = get_page_html(search_for)
     results = get_results(page)
 
+    log.debug(str(results))
+
     if results is None:
         print "Cannot connect to DuckDuckGo."
         return
     for row in results:
-        row = '%s\n%s\n%s\n-----------------------------------------' % (row['title'], row['description'], row['link'])
-        screen.addstr(row, curses.COLOR_WHITE)
+        continue
+        #row = '%s\n%s\n%s\n-----------------------------------------' % (row['title'], row['description'], row['link'])
+        #screen.addstr(row, curses.COLOR_WHITE)
         #screen.addstr(row['description']+'\n', curses.COLOR_WHITE)
         # screen.addstr(row['link']+'\n', curses.COLOR_WHITE)
         # screen.addstr('------------------------------------', curses.COLOR_BLUE)
@@ -53,14 +56,7 @@ def row_formatting(row):
         String formatted for display
 
     """
-    # todo: this could all probably be done in one step
-    row = row.replace('<b>', '')
-    row = row.replace('</b>', '')
-    row = row.replace('\n', '')
-    row = row.replace('\xc2\xb7', '')  # todo: find others like this... there has to be a library somewhere
-    row = row.strip()
-    row = row.title()
-    return row
+    return row.translate(None, '<b></b>\t\n&amp;&quot;').strip().title().decode('utf-8')
 
 
 def get_results(string):
@@ -74,17 +70,9 @@ def get_results(string):
         Dictionary with keys "" # TODO
 
     """
-
     # Get table rows containing the results
     soup = BeautifulSoup.BeautifulSoup(string)
     table = soup.findAll('table')[2]
-
-    # counter = 0
-    # for t in table:
-    #     log.debug("---------------%s-----------" % str(counter))
-    #     log.debug(str(t))
-    #     counter += 1
-
     rows = table.findAll('tr')
     valid_rows = []
     for row in rows:
@@ -132,8 +120,7 @@ def get_results(string):
             counter = 0
             row_data = {}
     results = byteify(results)
-    log.debug(str(results))
-    return results
+    return results[0:4]
 
 
 def byteify(input):
