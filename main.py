@@ -25,8 +25,12 @@ def start():
     if results is None:
         print "Cannot connect to DuckDuckGo."
         return
-    #for row in results:
-        #screen.addstr(row['title']+'\n', curses.COLOR_WHITE)
+    for row in results:
+        row = '%s\n%s\n%s\n-----------------------------------------' % (row['title'], row['description'], row['link'])
+        screen.addstr(row, curses.COLOR_WHITE)
+        #screen.addstr(row['description']+'\n', curses.COLOR_WHITE)
+        # screen.addstr(row['link']+'\n', curses.COLOR_WHITE)
+        # screen.addstr('------------------------------------', curses.COLOR_BLUE)
 
     # Get keyboard input for commands/shortcuts
     running = True
