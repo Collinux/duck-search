@@ -1,8 +1,10 @@
 #!/usr/bin/python
+# todo: license
+import sys
 import curses
 import urllib2
-import BeautifulSoup
 import webbrowser
+import BeautifulSoup
 import logging as log
 from urlparse import urlparse
 
@@ -11,22 +13,23 @@ def start():
     # Setup debugging
     log.basicConfig(filename='ducksearch.log', level=log.DEBUG)
 
+    # Load content
+    search_string = ''
+    for arg in sys.argv:
+        search_string += arg + ' '
+    search_for = build_url(search_string)
+    page = get_page_html(search_for)
+    results = get_results(page)
+    if results is None:
+        print "Cannot connect to DuckDuckGo."
+        return
+
     # Configure window and screen
     screen = curses.initscr()
     curses.noecho()
     curses.cbreak()
     screen.keypad(1)
 
-    # Load content
-    # todo: get input args
-    search_for = build_url('python curses library')
-    page = get_page_html(search_for)
-    results = get_results(page)
-
-    # Show the results on the screen
-    if results is None:
-        print "Cannot connect to DuckDuckGo."
-        return
     count = 1
     screen.addstr('\n\n')
     for row in results:
@@ -58,7 +61,7 @@ def start():
         char = screen.getkey()
         if char == 'q' or char == curses.KEY_CANCEL:
             running = False
-        elif char.isdigit():
+        elif char.isdigit():  # todo: validity check 1-5  # todo: fix index bug. 0 index should open 1
             url = results[int(char)]['link']
             webbrowser.open(url)
     curses.endwin()
