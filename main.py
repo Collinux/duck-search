@@ -1,7 +1,8 @@
-# todo: /bin/ tag
+#!/usr/bin/python
 import curses
 import urllib2
 import BeautifulSoup
+import webbrowser
 import logging as log
 from urlparse import urlparse
 
@@ -57,10 +58,12 @@ def start():
     # Get keyboard input for commands/shortcuts
     running = True
     while running:
-        char = screen.getch()
-        if char == ord('q') or char == curses.KEY_CANCEL:
+        char = screen.getkey()
+        if char == 'q' or char == curses.KEY_CANCEL:
             running = False
-            # todo: HJKL move commands
+        elif char.isdigit():
+            url = results[int(char)]['link']
+            webbrowser.open(url)
     curses.endwin()
 
 
