@@ -3,6 +3,7 @@ import curses
 import urllib2
 import BeautifulSoup
 import logging as log
+from urlparse import urlparse
 
 
 def start():
@@ -24,18 +25,34 @@ def start():
     page = get_page_html(search_for)
     results = get_results(page)
 
-    #log.debug(str(results))
-
     # Show the results on the screen
     if results is None:
         print "Cannot connect to DuckDuckGo."
         return
     count = 1
+    screen.addstr('\n\n')  # todo: This is a hacky padding for the top. Make this change to the window padding.
     for row in results:
-        screen.addstr('%s.  %s\n' % (str(count), row['title']), curses.COLOR_RED | curses.A_BOLD)
-        screen.addstr('%s\n' % row['description'], curses.COLOR_BLUE | curses.A_NORMAL)
-        screen.addstr('%s\n' % row['link'][row['link'].index('://')+3:], curses.COLOR_CYAN | curses.A_UNDERLINE)
-        screen.addstr('-------------------------------------\n', curses.COLOR_BLACK)
+        # Row Count
+        screen.addstr('%s.  ' % (str(count)))
+
+        # URL
+        parsed_uri = urlparse(row['link'])
+        url = '{uri.scheme}://{uri.netloc}'.format(uri=parsed_uri)
+        url = url[url.index('://')+3:]
+        screen.addstr('%s' % (url), curses.COLOR_CYAN)
+
+        # Title
+        space_string = ''
+        if len(row['title']) < 15:
+            space_string += ' ' * (15 - len(row['title']))
+        screen.addstr('\t%s%s\n' % (row['title'], space_string), curses.COLOR_RED | curses.A_BOLD)
+
+        # Description
+        screen.addstr('%s' % row['description'], curses.COLOR_BLUE | curses.A_NORMAL)
+
+        # Separator
+        screen.addstr('\n\n%s\n' % ('-' * width), curses.COLOR_BLACK)
+
         count += 1
     screen.refresh()  # todo: is this really needed here?
 
@@ -126,7 +143,7 @@ def get_results(string):
             counter = 0
             row_data = {}
     results = byteify(results)
-    return results[0:4]
+    return results[0:5]
 
 
 def byteify(input):
