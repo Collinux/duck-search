@@ -42,16 +42,14 @@ def start():
         screen.addstr('%s' % (url), curses.COLOR_CYAN)
 
         # Title
+        # todo: string filling is not working
         space_string = ''
         if len(row['title']) < 15:
             space_string += ' ' * (15 - len(row['title']))
         screen.addstr('\t%s%s\n' % (row['title'], space_string), curses.COLOR_RED | curses.A_BOLD)
 
         # Description
-        screen.addstr('%s' % row['description'], curses.COLOR_BLUE | curses.A_NORMAL)
-
-        # Separator
-        screen.addstr('\n\n%s\n' % ('-' * width), curses.COLOR_BLACK)
+        screen.addstr('%s\n\n\n' % row['description'], curses.COLOR_BLUE | curses.A_NORMAL)
 
         count += 1
     screen.refresh()  # todo: is this really needed here?
@@ -79,7 +77,7 @@ def row_formatting(row):
     """
     row = row.replace('<b>', '').replace('</b>', '').replace('\n', '').replace(
         '\t', '').replace('&amp;', '&').replace('&quot;', '"').replace('&nbsp;', '')
-    return row.decode('UTF-8').strip()
+    return row.decode('UTF-8').strip()  # todo: UTF-8 decoding is not working
 
 
 def get_results(string):
