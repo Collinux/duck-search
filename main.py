@@ -19,22 +19,25 @@ def start():
     screen.keypad(1)
 
     # Load content
-    # todo: get input
+    # todo: get input args
     search_for = build_url('python curses library')
     page = get_page_html(search_for)
     results = get_results(page)
 
-    log.debug(str(results))
+    #log.debug(str(results))
 
+    # Show the results on the screen
     if results is None:
         print "Cannot connect to DuckDuckGo."
         return
+    count = 1
     for row in results:
-        row = '%s\n%s\n%s\n-----------------------------------------\n' % (row['title'], row['description'], row['link'])
-        screen.addstr(row, curses.COLOR_WHITE)
-        # screen.addstr(row['description']+'\n', curses.COLOR_WHITE)
-        # screen.addstr(row['link']+'\n', curses.COLOR_WHITE)
-        # screen.addstr('------------------------------------', curses.COLOR_BLUE)
+        screen.addstr('%s.  %s\n' % (str(count), row['title']), curses.COLOR_RED | curses.A_BOLD)
+        screen.addstr('%s\n' % row['description'], curses.COLOR_BLUE | curses.A_NORMAL)
+        screen.addstr('%s\n' % row['link'][row['link'].index('://')+3:], curses.COLOR_CYAN | curses.A_UNDERLINE)
+        screen.addstr('-------------------------------------\n', curses.COLOR_BLACK)
+        count += 1
+    screen.refresh()  # todo: is this really needed here?
 
     # Get keyboard input for commands/shortcuts
     running = True
@@ -59,7 +62,7 @@ def row_formatting(row):
     """
     row = row.replace('<b>', '').replace('</b>', '').replace('\n', '').replace(
         '\t', '').replace('&amp;', '&').replace('&quot;', '"').replace('&nbsp;', '')
-    return row.decode('UTF-8')
+    return row.decode('UTF-8').strip()
 
 
 def get_results(string):
