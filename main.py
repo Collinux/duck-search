@@ -1,7 +1,9 @@
+# todo: /bin/ tag
 import curses
 import urllib2
 import BeautifulSoup
 import logging as log
+
 
 def start():
     # Setup debugging
@@ -28,10 +30,9 @@ def start():
         print "Cannot connect to DuckDuckGo."
         return
     for row in results:
-        continue
-        #row = '%s\n%s\n%s\n-----------------------------------------' % (row['title'], row['description'], row['link'])
-        #screen.addstr(row, curses.COLOR_WHITE)
-        #screen.addstr(row['description']+'\n', curses.COLOR_WHITE)
+        row = '%s\n%s\n%s\n-----------------------------------------\n' % (row['title'], row['description'], row['link'])
+        screen.addstr(row, curses.COLOR_WHITE)
+        # screen.addstr(row['description']+'\n', curses.COLOR_WHITE)
         # screen.addstr(row['link']+'\n', curses.COLOR_WHITE)
         # screen.addstr('------------------------------------', curses.COLOR_BLUE)
 
@@ -41,7 +42,7 @@ def start():
         char = screen.getch()
         if char == ord('q') or char == curses.KEY_CANCEL:
             running = False
-        # todo: HJKL move commands
+            # todo: HJKL move commands
     curses.endwin()
 
 
@@ -56,7 +57,9 @@ def row_formatting(row):
         String formatted for display
 
     """
-    return row.translate(None, '<b></b>\t\n&amp;&quot;').strip().title().decode('utf-8')
+    row = row.replace('<b>', '').replace('</b>', '').replace('\n', '').replace(
+        '\t', '').replace('&amp;', '&').replace('&quot;', '"').replace('&nbsp;', '')
+    return row.decode('UTF-8')
 
 
 def get_results(string):
@@ -83,21 +86,21 @@ def get_results(string):
         # Go through inner html for all text
         if 'result-link' in row:
             # Title section
-            row = row[row.index('link">')+6: row.index('</a>')]
+            row = row[row.index('link">') + 6: row.index('</a>')]
             valid_rows.append(row_formatting(row))
-            #log.debug(row)
+            # log.debug(row)
         elif 'result-snippet' in row:
             # Description section
-            row = row[row.index('snippet">')+9: row.rindex('</td>')]
+            row = row[row.index('snippet">') + 9: row.rindex('</td>')]
             valid_rows.append(row_formatting(row))
-            #log.debug(row)
+            # log.debug(row)
         elif 'link-text' in row:
             # Link section
-            row = row[row.index('text">')+6: row.index('</span>')]
+            row = row[row.index('text">') + 6: row.index('</span>')]
             if 'http' not in row:
                 row = 'http://' + row
             valid_rows.append(row)
-            #log.debug(row)
+            # log.debug(row)
         else:
             continue
 
@@ -107,7 +110,7 @@ def get_results(string):
     results = []
     for row in valid_rows:
         if counter == 0:
-            row_data['title'] = row
+            row_data['title'] = row.title()
             counter += 1
         elif counter == 1:
             row_data['description'] = row
@@ -162,7 +165,6 @@ def get_page_html(url):
         return page.read()
     print "Error for url %, code %s" % (url, str(page_code))
     return None
-
 
 
 def build_url(args):
