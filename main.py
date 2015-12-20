@@ -13,9 +13,6 @@ def start():
 
     # Configure window and screen
     screen = curses.initscr()
-    height, width = screen.getmaxyx()
-    begin_x = begin_y = 1
-    window = curses.newwin(height, width, begin_y, begin_x)
     curses.noecho()
     curses.cbreak()
     screen.keypad(1)
@@ -31,15 +28,15 @@ def start():
         print "Cannot connect to DuckDuckGo."
         return
     count = 1
-    screen.addstr('\n\n')  # todo: This is a hacky padding for the top. Make this change to the window padding.
+    screen.addstr('\n\n')
     for row in results:
         # Row Count
-        screen.addstr('%s.  ' % (str(count)))
+        screen.addstr('  %s.  ' % (str(count)))
 
         # URL
         parsed_uri = urlparse(row['link'])
         url = '{uri.scheme}://{uri.netloc}'.format(uri=parsed_uri)
-        url = url[url.index('://')+3:]
+        url = url[url.index('://') + 3:]
         space_string = ''
         section_length = 20
         if len(url) < section_length:
@@ -53,9 +50,9 @@ def start():
         screen.addstr('%s\n\n\n' % row['description'], curses.COLOR_BLUE | curses.A_NORMAL)
 
         count += 1
-    screen.refresh()  # todo: is this really needed here?
 
     # Get keyboard input for commands/shortcuts
+    screen.addstr('Enter a number to open the webpage:  ')
     running = True
     while running:
         char = screen.getkey()
@@ -170,15 +167,15 @@ def byteify(input):
 
 def get_page_html(url):
     """
-	Requests the HTML string from a page.
+    Requests the HTML string from a page.
 
-	Args:
-	    url: String pointing to the web page
+    Args:
+        url: String pointing to the web page
 
-	Returns:
-	    String if the server responds with 200 [SUCCESS], else None object.
+    Returns:
+        String if the server responds with 200 [SUCCESS], else None object.
 
-	"""
+    """
     page = urllib2.urlopen(url)
     page_code = page.getcode()
     # print "Server response [%s]" % str(page_code)
