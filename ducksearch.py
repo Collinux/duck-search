@@ -27,7 +27,7 @@ import logging as log
 from urlparse import urlparse
 
 
-def start():
+def search():
     # Setup debugging
     log.basicConfig(filename='ducksearch.log', level=log.DEBUG)
 
@@ -220,4 +220,4 @@ def build_url(args):
     return 'https://duckduckgo.com/lite/?q=' + args.replace(' ', '+')
 
 
-start()
+search()
