@@ -40,14 +40,14 @@ def start():
         parsed_uri = urlparse(row['link'])
         url = '{uri.scheme}://{uri.netloc}'.format(uri=parsed_uri)
         url = url[url.index('://')+3:]
-        screen.addstr('%s' % (url), curses.COLOR_CYAN)
+        space_string = ''
+        section_length = 20
+        if len(url) < section_length:
+            space_string += ' ' * (section_length - len(url))
+        screen.addstr('%s%s  ' % (url, space_string), curses.COLOR_CYAN)
 
         # Title
-        # todo: string filling is not working
-        space_string = ''
-        if len(row['title']) < 15:
-            space_string += ' ' * (15 - len(row['title']))
-        screen.addstr('\t%s%s\n' % (row['title'], space_string), curses.COLOR_RED | curses.A_BOLD)
+        screen.addstr('%s\n' % (row['title']), curses.COLOR_RED | curses.A_BOLD)
 
         # Description
         screen.addstr('%s\n\n\n' % row['description'], curses.COLOR_BLUE | curses.A_NORMAL)
