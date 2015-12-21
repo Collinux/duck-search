@@ -2,7 +2,7 @@
 [Python] Do a DuckDuckGo search from a terminal, open links in a minimalist text view.
 * Minimalistic
 * Simple
-* Fast - For extra speed we use "duckduckgo.com/lite/" for lightweight responses.
+* Fast - For extra speed "duckduckgo.com/lite/" is used for lightweight responses.
 
 ## Getting Started
 #### Just run the script with your search string at the end.
