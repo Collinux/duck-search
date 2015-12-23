@@ -1,4 +1,4 @@
-# ducksearch
+# DuckDuckGo Terminal Search
 [Python] Do a DuckDuckGo search from a terminal, open links in a minimalist text view.
 * Minimalistic
 * Simple
