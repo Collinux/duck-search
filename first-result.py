@@ -1,8 +1,9 @@
 #!/usr/bin/python
 #
-# DuckDuckGo search with a terminal interface.
+# Open the first result from DuckDuckGo.com given a search string as an argument
+# (Separate from duck-search.py)
 #
-# Copyright (c) 2015  Collin Guarino
+# Copyright (c) 2017 Collin Guarino
 #
 # This is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,72 +17,45 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with project.  If not, see <http://www.gnu.org/licenses/>.
-
-
-# REQUIRES: 'pip install beautifulsoup'
 import sys
 import urllib2
 import webbrowser
 import BeautifulSoup
 from urlparse import urlparse
 
-# Main function controller
-def search():
-
-    # Load content
+def main():
+    # Get the search string from the argument
     if len(sys.argv) == 1:
-        print "A search string is required as an argument to run duck-search."
+        print "A search string is required as an arguent to run duck-search"
         return
     sys.argv = sys.argv[1:]
     search_string = str(''.join(str(arg)+"+" for arg in sys.argv))
     search_string = search_string[:len(search_string)-1] # Remove last '+'
-    url = 'https://duckduckgo.com/lite/?q=' + search_string
+
+    # Parse duckduckgo and open the first page in the default browser
+    url = 'https://duckduckgo.com/lite/?q=' + search_string 
     results = get_results(get_page(url))
-    if results is None:
-        print "Cannot connect to DuckDuckGo."
-        return
-
-    # Display the content from DuckDuckgo.com
-    count = 1
-    for row in results:
-        # URL
-        parsed_uri = urlparse(row['link'])
-        url = '{uri.scheme}://{uri.netloc}'.format(uri=parsed_uri)
-        url = url[url.index('://') + 3:]
-        print('%s. %s :: %s :: %s\n' % (str(count), url, row['title'], row['description']))
-        count += 1
-
-    # Get keyboard input for selecting the URL index or quit key
-    running = True
-    while running:
-        char = raw_input("Select number> ")
-        if char == 'q' or char == '\n':
-            running = False
-        elif char.isdigit() and int(char) <= len(results) and int(char) != 0:
-            # Open the defalt browser to that link
-            # See https://docs.python.org/2/library/webbrowser.html
-            url = results[int(char)-1]['link']
-            webbrowser.open(url)
-            running = False
-        else: # Invalid input, quit
-            running = False
-    return
+    webbrowser.open(results[0]['link'])
 
 
-def format_row(row):
+def get_page(url):
     """
-    Custom format for rows from the search result
+    Requests the HTML string from a page.
 
     Args:
-        row: String raw from html
+        url: String pointing to the web page
 
     Returns:
-        tring formatted for display
+        String if the server responds with 200 [SUCCESS], else None object.
 
     """
-    row = row.replace('<b>', '').replace('</b>', '').replace('\n', '').replace(
-        '\t', '').replace('&amp;', '&').replace('&quot;', '"').replace('&nbsp;', '')
-    return row.decode('UTF-8').strip()  # todo: UTF-8 decoding is not working
+    page = urllib2.urlopen(url)
+    page_code = page.getcode()
+    # print "Server response [%s]" % str(page_code)
+    if page_code == 200:
+        return page.read()
+    print "Error for url %, code %s" % (url, str(page_code))
+    return None
 
 
 def get_results(string):
@@ -144,7 +118,6 @@ def get_results(string):
     results = byteify(results)
     return results[0:5]
 
-
 def byteify(input):
     """
     Conversion from unicode values to byte/string
@@ -166,23 +139,19 @@ def byteify(input):
         return input
 
 
-def get_page(url):
+def format_row(row):
     """
-    Requests the HTML string from a page.
+    Custom format for rows from the search result
 
     Args:
-        url: String pointing to the web page
+        row: String raw from html
 
     Returns:
-        String if the server responds with 200 [SUCCESS], else None object.
+        tring formatted for display
 
     """
-    page = urllib2.urlopen(url)
-    page_code = page.getcode()
-    # print "Server response [%s]" % str(page_code)
-    if page_code == 200:
-        return page.read()
-    print "Error for url %, code %s" % (url, str(page_code))
-    return None
+    row = row.replace('<b>', '').replace('</b>', '').replace('\n', '').replace(
+        '\t', '').replace('&amp;', '&').replace('&quot;', '"').replace('&nbsp;', '')
+    return row.decode('UTF-8').strip()  # todo: UTF-8 decoding is not working
 
-search()
+main()
