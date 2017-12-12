@@ -23,17 +23,26 @@ import curses
 import urllib2
 import webbrowser
 import BeautifulSoup
-import logging as log
+import os
 from urlparse import urlparse
+#import logging as log
 
-
+# No error occured, clear the screen and go back to the terminal
+def silent_quit():
+    curses.endwin()
+    os.system("clear")
+    
+# Main function controller
 def search():
     # Setup debugging
-    log.basicConfig(filename='ducksearch.log', level=log.DEBUG)
+    #log.basicConfig(filename='duck-search.log', level=log.DEBUG)
 
     # Load content
     search_string = ''
     for arg in sys.argv:
+        if len(sys.argv) == 1:
+            print "A search string is required as an argument to run duck-search."
+            return
         search_string += arg + ' '
     search_for = build_url(search_string)
     page = get_page_html(search_for)
@@ -49,10 +58,10 @@ def search():
     screen.keypad(1)
 
     count = 1
-    screen.addstr('\n\n')
+    #screen.addstr('\n\n')
     for row in results:
         # Row Count
-        screen.addstr('  %s.  ' % (str(count)))
+        screen.addstr(' %s.  ' % (str(count)))
 
         # URL
         parsed_uri = urlparse(row['link'])
@@ -68,21 +77,25 @@ def search():
         screen.addstr('%s\n' % (row['title']), curses.COLOR_RED | curses.A_BOLD)
 
         # Description
-        screen.addstr('%s\n\n\n' % row['description'], curses.COLOR_BLUE | curses.A_NORMAL)
+        screen.addstr('\t%s\n\n\n' % row['description'], curses.COLOR_BLUE | curses.A_NORMAL)
 
         count += 1
 
     # Get keyboard input for commands/shortcuts
-    screen.addstr('Enter a number to open the webpage:  ')
+    screen.addstr('Select number> ')
     running = True
     while running:
         char = screen.getkey()
-        if char == 'q' or char == curses.KEY_CANCEL:
+        if char == 'q' or char == '\n' or char == curses.KEY_CANCEL:
             running = False
-        elif char.isdigit():  # todo: validity check 1-5  # todo: fix index bug. 0 index should open 1
-            url = results[int(char)]['link']
+        elif char.isdigit() and int(char) <= len(results) and int(char) != 0:
+            url = results[int(char)-1]['link']
+            # Open the defalt browser to that link
+            # See https://docs.python.org/2/library/webbrowser.html
             webbrowser.open(url)
-    curses.endwin()
+        else:
+            running = False
+    silent_quit()
 
 
 def row_formatting(row):
