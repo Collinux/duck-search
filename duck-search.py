@@ -18,87 +18,57 @@
 # along with project.  If not, see <http://www.gnu.org/licenses/>.
 
 
+# REQUIRES: 'pip install beautifulsoup'
 import sys
-import curses
 import urllib2
 import webbrowser
 import BeautifulSoup
-import os
 from urlparse import urlparse
-#import logging as log
 
-# No error occured, clear the screen and go back to the terminal
-def silent_quit():
-    curses.endwin()
-    os.system("clear")
-    
 # Main function controller
 def search():
-    # Setup debugging
-    #log.basicConfig(filename='duck-search.log', level=log.DEBUG)
 
     # Load content
-    search_string = ''
-    for arg in sys.argv:
-        if len(sys.argv) == 1:
-            print "A search string is required as an argument to run duck-search."
-            return
-        search_string += arg + ' '
-    search_for = build_url(search_string)
-    page = get_page_html(search_for)
-    results = get_results(page)
+    if len(sys.argv) == 1:
+        print "A search string is required as an argument to run duck-search."
+        return
+    sys.argv = sys.argv[1:]
+    search_string = str(''.join(str(arg)+"+" for arg in sys.argv))
+    search_string = search_string[:len(search_string)-1] # Remove last '+'
+    url = 'https://duckduckgo.com/lite/?q=' + search_string
+    results = get_results(get_page(url))
     if results is None:
         print "Cannot connect to DuckDuckGo."
         return
 
-    # Configure window and screen
-    screen = curses.initscr()
-    curses.noecho()
-    curses.cbreak()
-    screen.keypad(1)
-
+    # Display the content from DuckDuckgo.com
     count = 1
-    #screen.addstr('\n\n')
     for row in results:
-        # Row Count
-        screen.addstr(' %s.  ' % (str(count)))
-
         # URL
         parsed_uri = urlparse(row['link'])
         url = '{uri.scheme}://{uri.netloc}'.format(uri=parsed_uri)
         url = url[url.index('://') + 3:]
-        space_string = ''
-        section_length = 20
-        if len(url) < section_length:
-            space_string += ' ' * (section_length - len(url))
-        screen.addstr('%s%s  ' % (url, space_string), curses.COLOR_CYAN)
-
-        # Title
-        screen.addstr('%s\n' % (row['title']), curses.COLOR_RED | curses.A_BOLD)
-
-        # Description
-        screen.addstr('\t%s\n\n\n' % row['description'], curses.COLOR_BLUE | curses.A_NORMAL)
-
+        print('%s. %s :: %s :: %s\n' % (str(count), url, row['title'], row['description']))
         count += 1
 
-    # Get keyboard input for commands/shortcuts
-    screen.addstr('Select number> ')
+    # Get keyboard input for selecting the URL index or quit key
     running = True
     while running:
-        char = screen.getkey()
-        if char == 'q' or char == '\n' or char == curses.KEY_CANCEL:
+        char = raw_input("Select number> ")
+        if char == 'q' or char == '\n':
             running = False
         elif char.isdigit() and int(char) <= len(results) and int(char) != 0:
-            url = results[int(char)-1]['link']
             # Open the defalt browser to that link
             # See https://docs.python.org/2/library/webbrowser.html
+            url = results[int(char)-1]['link']
             webbrowser.open(url)
-        else:
             running = False
-    silent_quit()
+        else: # Invalid input, quit
+            running = False
+    return
 
 
-def row_formatting(row):
+def format_row(row):
     """
     Custom format for rows from the search result
 
@@ -122,7 +92,7 @@ def get_results(string):
         string: Full HTML string
 
     Returns:
-        Dictionary with keys "" # TODO
+        Dictionary with keys 'title' and 'description'
 
     """
     # Get table rows containing the results
@@ -139,20 +109,17 @@ def get_results(string):
         if 'result-link' in row:
             # Title section
             row = row[row.index('link">') + 6: row.index('</a>')]
-            valid_rows.append(row_formatting(row))
-            # log.debug(row)
+            valid_rows.append(format_row(row))
         elif 'result-snippet' in row:
             # Description section
             row = row[row.index('snippet">') + 9: row.rindex('</td>')]
-            valid_rows.append(row_formatting(row))
-            # log.debug(row)
+            valid_rows.append(format_row(row))
         elif 'link-text' in row:
             # Link section
             row = row[row.index('text">') + 6: row.index('</span>')]
             if 'http' not in row:
                 row = 'http://' + row
             valid_rows.append(row)
-            # log.debug(row)
         else:
             continue
 
@@ -199,7 +166,7 @@ def byteify(input):
         return input
 
 
-def get_page_html(url):
+def get_page(url):
     """
     Requests the HTML string from a page.
 
@@ -217,20 +184,5 @@ def get_page_html(url):
         return page.read()
     print "Error for url %, code %s" % (url, str(page_code))
     return None
-
-
-def build_url(args):
-    """
-    Attaches base URL for database site to query options.
-
-    Args:
-        args: String to search for
-
-    Returns:
-        Quest URL for a specific page
-
-    """
-    return 'https://duckduckgo.com/lite/?q=' + args.replace(' ', '+')
-
 
 search()
