@@ -6,5 +6,6 @@
 
 ## Getting Started
 #### Just run the script with your search string at the end.
-* "./ducksearch.py python curses library documentation" shows you results for "python curses documentation".
-* To select the page you want from the results, type the number shown next to the result
+* Install dependencies: `pip install beautifulsoup`
+* Run the script: `python duck-search.py some search string` (displays results for "some search string")
+* To select the page you want from the results type the number shown next to the result
